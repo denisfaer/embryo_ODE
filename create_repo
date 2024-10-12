@@ -1,0 +1,32 @@
+# Initialize repo
+git init
+# Rename master to main
+git branch -M main
+# Create, add and commit readme
+echo "# Embryo ODE" >> README.md
+git add README.md
+git commit -m "add: README.md"
+# Add remote and push
+git remote add origin git@github.com:denisfaer/embryo_ODE.git
+git push -u origin main
+# Add images
+git add model.png
+git commit -m "add: model slide"
+git add title.png
+git commit -m "add: title image"
+# FOR PULL REQUEST
+# Create and switch to a new branch for the changes
+git checkout -b update-readme
+# Move images to images/ folder
+mkdir images
+mv ./*.png images/
+# Modify README.md
+echo "# Embryo ODE\n
+## Project
+![Image 1](images/image1.png)
+
+## Image 2
+![Image 2](images/image2.png)
+
+### Description
+This project demonstrates how to use branches, modify files, and create pull requests in GitHub."
