@@ -1,0 +1,14 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "embryo-ode"
+version = "0.1.0"
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.ruff]
+line-length = 88
+exclude = ["tests"]
