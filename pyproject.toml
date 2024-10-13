@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "embryo-ode"
 version = "0.1.0"
@@ -5,3 +9,10 @@ description = "Developing a data-driven dynamic model of cell fate choice in mam
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.ruff]
+line-length = 88
+exclude = ["tests"]
