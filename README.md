@@ -1,5 +1,8 @@
 # Embryo ODE
 
+## Setup
+- Install `uv`
+
 ## Project
 
 ![Title](./images/title.png)
