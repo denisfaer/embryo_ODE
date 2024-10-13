@@ -1,0 +1,7 @@
+[project]
+name = "embryo-ode"
+version = "0.1.0"
+description = "Developing a data-driven dynamic model of cell fate choice in mammalian embryogenesis"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
