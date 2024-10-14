@@ -1,4 +1,4 @@
-from epipeODE import Cell
+from embryo import Cell
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
@@ -16,32 +16,30 @@ class GeometricalModel(ABC):
 
     def update_state(self, cell: Cell):
         dx, dy = self.gradient(cell)
-        cell.x += dx * self.dt
-        cell.y += dy * self.dt
-        cell.apply_noise()
-
+        cell.fate.x += dx * self.dt
+        cell.fate.y += dy * self.dt
+        cell.fate.apply_noise()
 
 @dataclass
 class DualCuspModel(GeometricalModel):
     K1: float = 0.15
 
     def potential(self, cell: Cell):
-        return cell.x**4 + cell.y**4 - cell.y**3 + 4 * cell.x**2 * cell.y + cell.y**2 - self.K1 * cell.y
+        return cell.fate.x**4 + cell.fate.y**4 - cell.fate.y**3 + 4 * cell.fate.x**2 * cell.fate.y + cell.fate.y**2 - self.K1 * cell.fate.y
 
     def gradient(self, cell: Cell):
-        dx = -4 * cell.x**3 + 8 * cell.x * cell.y
-        dy = -4 * cell.y**3 + 3 * cell.y**2 + 4 * cell.x**2 - 2 * self.K1 * cell.y
+        dx = -4 * cell.fate.x**3 + 8 * cell.fate.x * cell.fate.y
+        dy = -4 * cell.fate.y**3 + 3 * cell.fate.y**2 + 4 * cell.fate.x**2 - 2 * self.K1 * cell.fate.y
         return dx, dy
-
 
 @dataclass
 class HeteroclinicFlipModel(GeometricalModel):
     K2: float = 1.5
 
     def potential(self, cell: Cell):
-	return cell.x**4 + cell.y**4 - cell.y**3 + 2 * cell.x**2 * cell.y - cell.y**2 + self.K2 * cell.y
+	return cell.fate.x**4 + cell.fate.y**4 - cell.fate.y**3 + 2 * cell.fate.x**2 * cell.fate.y - cell.fate.y**2 + self.K2 * cell.fate.y
 
     def gradient(self, cell: Cell):
-        dx = -4 * cell.x**3 + 4 * cell.x * cell.y
-        dy = -4 * cell.y**3 + 3 * cell.y**2 + 2 * cell.x**2 + 2 * self.K2 * cell.y
+        dx = -4 * cell.fate.x**3 + 4 * cell.fate.x * cell.fate.y
+        dy = -4 * cell.fate.y**3 + 3 * cell.fate.y**2 + 2 * cell.fate.x**2 + 2 * self.K2 * cell.fate.y
         return dx, dy
