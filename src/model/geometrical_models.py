@@ -20,7 +20,7 @@ class GeomModel(ABC): # general modeling class
 	temp_y = cell.fate.y + dy * self.dt
 	temp = Fate(temp_x, temp_y)
         temp.apply_noise()
-	location = [0, 0] # in the future this will update cell movement
+	location = Point(0, 0) # in the future this will update cell movement
 	cell.history.append([location, temp])
 	cell.fate.x = temp.x
 	cell.fate.y = temp.y
