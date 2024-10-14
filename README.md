@@ -5,11 +5,11 @@
 
 ## Project
 
-![Title](./images/title.png)
+![Title](./info/title.png)
 
 ## Model
 
-![Model](./images/model.png)
+![Model](./info/model.png)
 
 ### Description
 
