@@ -35,7 +35,7 @@ class DualCusp(GeomModel): # Dual Cusp model from Raju & Siggia (2024)
 
     def gradient(self, cell: Fate):
         dx = -4 * cell.x ** 3 + 8 * cell.x * cell.y
-        dy = -4 * cell.y* * 3 + 3 * cell.y ** 2 + 4 * cell.x ** 2 - 2 * self.K1 * cell.y
+        dy = -4 * cell.y ** 3 + 3 * cell.y ** 2 + 4 * cell.x ** 2 - 2 * self.K1 * cell.y
         return dx, dy
 
 
