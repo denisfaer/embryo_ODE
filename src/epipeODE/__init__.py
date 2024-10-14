@@ -2,11 +2,12 @@ import dataclasses
 import numpy as np
 
 @dataclasses.dataclass
-class Point: # holds the spatial coordinates of a point
-    x: int
-    y: int
+class Point: # holds the position of a point in a 3D sapce (unused dimensions are set to 0)
+    x: int = 0
+    y: int = 0
+    z: int = 0
     def dist(self, dest):
-        return ((self.x - dest.x) ** 2 + (self.y - dest.y) ** 2) ** 1/2
+        return ((self.x - dest.x) ** 2 + (self.y - dest.y) ** 2 + (self.z - dest.z) ** 2) ** 1/2
 
 @dataclasses.dataclass
 class Fate: # holds the ODE x, y (EPI-PE axis, Specification axis)
