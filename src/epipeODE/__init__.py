@@ -1,4 +1,5 @@
 import dataclasses
+import numpy as np
 
 @dataclasses.dataclass
 class Point: # holds the spatial coordinates of a point
@@ -12,6 +13,12 @@ class Fate: # holds the ODE x, y (EPI-PE axis, Specification axis)
     def __init__(self, x, y):
         self.x = x
         self.y = y
+    
+    noise_level: float = 0.05
+        
+    def apply_noise(self):
+        self.x += np.random.normal(0, self.noise_level)
+        self.y += np.random.normal(0, self.noise_level)
 
 @dataclasses.dataclass
 class Cell: # object of a single cell specifying location and fate
