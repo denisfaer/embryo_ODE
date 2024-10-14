@@ -22,8 +22,8 @@ class GeometricalModel(ABC):
         temp.apply_noise()
 	location = [0, 0] # in the future this will update cell movement
 	cell.history.append([location, temp])
-	cell.x = temp.x
-	cell.y = temp.y
+	cell.fate.x = temp.x
+	cell.fate.y = temp.y
 
 
 @dataclass
