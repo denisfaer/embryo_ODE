@@ -1,4 +1,4 @@
-from epipeODE import Cell, Point, Fate
+from ..core import Cell, Point, Fate
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 

@@ -3,16 +3,38 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "embryo-ode"
-version = "0.1.0"
+name = "embryo_ODE"
+dynamic = ["version"]
 description = "Developing a data-driven dynamic model of cell fate choice in mammalian embryogenesis"
 readme = "README.md"
-requires-python = ">=3.11"
-dependencies = []
+requires-python = ">=3.7"
+dependencies = [
+    "numpy",
+    # add other dependencies, like scipy, etc
+]
+
+[project.urls]
+"Homepage" = "https://github.com/denisfaer/embryo_ODE"
+
+[tool.hatch.version]
+path = "src/epipeODE/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/epipeODE"]
 
 [project.optional-dependencies]
 test = ["pytest"]
 
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+]
+
 [tool.ruff]
+target-version = "py39"
 line-length = 88
 exclude = ["tests"]
+
+[tool.ruff.lint]
+extend-select = ["B", "I", "RUF", "UP"]
