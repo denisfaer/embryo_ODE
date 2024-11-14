@@ -15,14 +15,14 @@ def test_init():
     p = Point(1, 2, 3)
     f = Fate(0.5, 0.7)
     c = Cell(p, f)
-    
+
     assert p.x == 1
     assert p.y == 2
     assert p.z == 3
 
     assert f.x == 0.5
     assert f.y == 0.7
-    
+
     assert c.loc == p
     assert c.fate == f
     assert len(c.history) == 1
