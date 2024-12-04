@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 @dataclasses.dataclass
-class Point: # holds the position of a point in a 3D sapce (unused dimensions are set to 0)
+class Point: # holds the position of a point in a 3D space (unused dimensions are set to 0)
     x: int = 0
     y: int = 0
     z: int = 0
@@ -15,9 +15,9 @@ class Fate: # holds the ODE x, y (EPI-PE axis, Specification axis)
     def __init__(self, x, y):
         self.x = x
         self.y = y
-    
+
     noise_level: float = 0.05
-        
+
     def apply_noise(self):
         self.x += np.random.normal(0, self.noise_level)
         self.y += np.random.normal(0, self.noise_level)
