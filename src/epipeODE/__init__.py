@@ -38,7 +38,7 @@ class GeomModel(ABC): # general modeling class
         pass
 
     @abstractmethod
-    def gradient(self, cell: Fate):
+    def gradient(self, cell: Fate) -> tuple[float, float]:
         pass
 
 """    def update_state(self, cell: Cell): # evolve the simulation 1 time-step
