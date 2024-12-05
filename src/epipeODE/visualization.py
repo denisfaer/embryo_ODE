@@ -21,7 +21,7 @@ class Visualizer:
 
         SCALE = 2 # how  much bigger the plot should be than the point bounding box
         GRANULARITY = 100 # how many points to sample in each dimension
-        MIN_BOUND = 1 # smallest possible size for the plot
+        MIN_BOUND = 1.3 # smallest possible size for the plot
 
         # get bounds for the plot
         embryo_coords = np.array([cell.loc.to_tuple() for cell in embryo.cells])
@@ -101,7 +101,52 @@ class Visualizer:
         :return: None
         """
 
-        raise NotImplementedError
+        model = history[0].model
+
+        # NOT DRY TODO FIXMEJf
+        SCALE = 2
+        GRANULARITY = 100
+        MIN_BOUND = 1.3
+
+        embryo_coords = np.array([cell.loc.to_tuple() for cell in embryo.cells])
+        min_x, max_x = np.min(embryo_coords[:, 0]), np.max(embryo_coords[:, 0])
+        min_y, max_y = np.min(embryo_coords[:, 1]), np.max(embryo_coords[:, 1])
+
+        min_x = min(min_x, -MIN_BOUND/SCALE)
+        max_x = max(max_x, MIN_BOUND/SCALE)
+        min_y = min(min_y, -MIN_BOUND/SCALE)
+        max_y = max(max_y, MIN_BOUND/SCALE)
+
+        X = np.linspace(min_x*SCALE, max_x*SCALE, GRANULARITY)
+        # Y = np.linspace(min_y*SCALE, max_y*SCALE, GRANULARITY)
+        Y = np.linspace(min_y*SCALE, max_y*SCALE, GRANULARITY)
+        X, Y = np.meshgrid(X, Y)
+        Z = embryo.model.potential(Fate(X, Y))
+
+        # dX, dY = np.gradient(Z) # TODO think about this?
+        dX, dY = embryo.model.gradient(Fate(X, Y))
+
+        magnitude = np.sqrt(dX**2 + dY**2)
+        dX = dX / (magnitude + 1e-8)
+        dY = dY / (magnitude + 1e-8)
+        fig, ax = plt.subplots()
+
+        ax.contourf(
+                X, Y, Z,
+                cmap='RdYlBu_r',
+                # linewidths=0.5,
+                # linestyle='solid',
+                )
+
+
+        ax.streamplot(X, Y, dX, dY,
+                      color='grey',
+                      density=1,
+                      linewidth=0.5,
+                      )
+
+        if show: plt.show()
+
 
 
 
@@ -141,5 +186,6 @@ if __name__ == '__main__':
     # v.plot_landscape(embryo)
 
     hist = generate_fake_history(embryo, 100)
-    print(hist[7].cells[0].loc)
+    print("hist", hist)
+    v.plot_trajectories(hist)
 
