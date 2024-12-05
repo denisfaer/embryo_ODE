@@ -78,6 +78,12 @@ class Visualizer:
         for cell in embryo.cells:
             ax.scatter(cell.loc.x, cell.loc.y, cell.loc.z, color='red')
 
+        # add axis labels
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel(f'{embryo.model.name} Potential')
+        ax.set_title(f'{embryo.model.name} Landscape')
+
         # plot styling
         ax.grid(False)
         ax.xaxis.pane.fill = False

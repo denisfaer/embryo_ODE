@@ -41,6 +41,7 @@ class Cell: # object of a single cell specifying location and fate
 # GEOM MODELS #
 @dataclass
 class GeomModel(ABC): # general modeling class
+    name: str
     dt: float = 0.01
 
     @abstractmethod
@@ -66,6 +67,7 @@ class GeomModel(ABC): # general modeling class
 
 @dataclass
 class DualCusp(GeomModel): # Dual Cusp model from Raju & Siggia (2024)
+    name: str = "Dual Cusp"
     K1: float = 0.15
 
     def potential(self, cell: Fate):
@@ -78,6 +80,7 @@ class DualCusp(GeomModel): # Dual Cusp model from Raju & Siggia (2024)
 
 @dataclass
 class HeteroclinicFlip(GeomModel): # Heterochronic Flip model from Raju & Siggia (2024)
+    name: str = "Heteroclinic Flip"
     K2: float = 1.5
 
     def potential(self, cell: Fate):
