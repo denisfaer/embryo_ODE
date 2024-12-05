@@ -21,8 +21,7 @@ class Visualizer:
 
         SCALE = 2 # how  much bigger the plot should be than the point bounding box
         GRANULARITY = 100 # how many points to sample in each dimension
-        # GROUND_OFFSET = 1 # how high to place off the ground
-        MIN_BOUND = 1
+        MIN_BOUND = 1 # smallest possible size for the plot
 
         # get bounds for the plot
         embryo_coords = np.array([cell.loc.to_tuple() for cell in embryo.cells])
@@ -94,8 +93,6 @@ class Visualizer:
         if show: plt.show()
 
 
-        # raise NotImplementedError
-
     def plot_trajectories(self, history: History, show: bool = True) -> None:
         """
         Creates a 2d plot of the trajectories of the cells in the history.
@@ -121,8 +118,6 @@ def very_temp_plot_surface():
     zmin = np.min(Z)
     ax.contourf(X, Y, Z, 20, cmap='RdYlBu_r', offset=zmin)
 
-
-
     ax.grid(False)
     ax.xaxis.pane.fill = False
     ax.yaxis.pane.fill = False
@@ -140,8 +135,11 @@ if __name__ == '__main__':
     # very_temp_plot_surface()
 
     embryo = initialize_embryo(geom_model, 100)
-    print("embryo", embryo)
+    # print("embryo", embryo)
 
     v = Visualizer()
-    v.plot_landscape(embryo)
+    # v.plot_landscape(embryo)
+
+    hist = generate_fake_history(embryo, 100)
+    print(hist[7].cells[0].loc)
 
