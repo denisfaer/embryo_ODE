@@ -5,9 +5,16 @@ from matplotlib import cbook, cm
 from matplotlib.colors import LightSource
 from functools import reduce
 
-
 from __init__ import * #TODO fixme? idk if these should be here
-
+"""
+TODO:
+    - [ ] add to-gif functionality
+        - [ ] to png
+        - [ ] wrap them
+    - deal with bounds issues?
+    - do we want to plot trajectories in 3d?
+    - should this really be a class?
+"""
 
 class Visualizer:
     def __init__(self):
