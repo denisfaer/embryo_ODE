@@ -3,6 +3,8 @@ from rich import print
 import matplotlib.pyplot as plt
 from matplotlib import cbook, cm
 from matplotlib.colors import LightSource
+from functools import reduce
+
 
 from __init__ import * #TODO fixme? idk if these should be here
 
@@ -101,14 +103,14 @@ class Visualizer:
         :return: None
         """
 
-        model = history[0].model
+        base_embryo = history[0]
 
-        # NOT DRY TODO FIXMEJf
+        # NOT DRY TODO FIXME
         SCALE = 2
         GRANULARITY = 100
         MIN_BOUND = 1.3
 
-        embryo_coords = np.array([cell.loc.to_tuple() for cell in embryo.cells])
+        embryo_coords = np.array([cell.loc.to_tuple() for cell in base_embryo.cells])
         min_x, max_x = np.min(embryo_coords[:, 0]), np.max(embryo_coords[:, 0])
         min_y, max_y = np.min(embryo_coords[:, 1]), np.max(embryo_coords[:, 1])
 
@@ -118,26 +120,27 @@ class Visualizer:
         max_y = max(max_y, MIN_BOUND/SCALE)
 
         X = np.linspace(min_x*SCALE, max_x*SCALE, GRANULARITY)
-        # Y = np.linspace(min_y*SCALE, max_y*SCALE, GRANULARITY)
         Y = np.linspace(min_y*SCALE, max_y*SCALE, GRANULARITY)
         X, Y = np.meshgrid(X, Y)
-        Z = embryo.model.potential(Fate(X, Y))
+        Z = base_embryo.model.potential(Fate(X, Y))
 
+        # get the streamlines
         # dX, dY = np.gradient(Z) # TODO think about this?
-        dX, dY = embryo.model.gradient(Fate(X, Y))
+        dX, dY = base_embryo.model.gradient(Fate(X, Y))
 
+        # normalize the streamlines
         magnitude = np.sqrt(dX**2 + dY**2)
         dX = dX / (magnitude + 1e-8)
         dY = dY / (magnitude + 1e-8)
-        fig, ax = plt.subplots()
 
-        ax.contourf(
+        # make the plots!
+        fig, ax = plt.subplots()
+        contour = ax.contourf(
                 X, Y, Z,
                 cmap='RdYlBu_r',
                 # linewidths=0.5,
                 # linestyle='solid',
                 )
-
 
         ax.streamplot(X, Y, dX, dY,
                       color='grey',
@@ -145,9 +148,29 @@ class Visualizer:
                       linewidth=0.5,
                       )
 
+
+        # scatter histories
+        points = map(lambda x: x.loc.to_tuple(), #yay functional :)
+                    reduce(lambda x, y: x+y,
+                       map(lambda embryo: embryo.cells,
+                           history.snapshots)))
+
+        points = np.array(list(points))
+        ax.scatter(points[:, 0], points[:, 1], color='blue', s=1)
+
+        # scatter initial embryo points
+        initial_points = np.array(
+                [cell.loc.to_tuple() for cell in base_embryo.cells])
+        ax.scatter(initial_points[:, 0], initial_points[:, 1], color='red', s=3)
+
+        # add axis labels
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_title(f'{base_embryo.model.name} Trajectories')
+        cbar = plt.colorbar(contour)
+        cbar.set_label(f'{base_embryo.model.name} Potential')
+
         if show: plt.show()
-
-
 
 
 def very_temp_plot_surface():

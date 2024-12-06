@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 import numpy as np
 from numpy.typing import NDArray
-from copy import copy
+from typing import Iterator
+from copy import deepcopy
 
 @dataclass
 class Point: # holds the position of a point in a 3D space (unused dimensions are set to 0)
@@ -106,7 +107,6 @@ class History:
     def __init__(self):
         self.snapshots: NDArray = np.array([], dtype=Embryo)
 
-
     def add(self, embryo: Embryo) -> None:
         self.snapshots = np.append(self.snapshots, embryo)
 
@@ -115,13 +115,15 @@ class History:
 
     def __repr__(self):
         return f"History(#snapshots={self.snapshots.shape})"
+    def __iter__(self) -> Iterator[Embryo]:
+        return iter(self.snapshots)
 
 
 ##### TESTING SETUP #####
 
 def initialize_embryo(model: GeomModel, num_cells: int) -> Embryo:
     cells: list[Cell] = []
-    bounds = (-0.3, 0.3)
+    bounds = (-0.1, 0.1)
     for _ in range(num_cells):
         x, y = np.random.uniform(*bounds), np.random.uniform(*bounds)
         cells.append(
@@ -141,23 +143,27 @@ def initialize_embryo(model: GeomModel, num_cells: int) -> Embryo:
 def generate_fake_history(initialize_embryo: Embryo, timesteps: int) -> History:
 
     def fake_iterate_state(embryo: Embryo):
-        next_embryo = copy(embryo)
+        next_embryo = deepcopy(embryo)
         for cell in next_embryo.cells:
             # update the location of the cell
 
-            dx, dy = next_embryo.model.gradient(Fate(cell.loc.x, cell.loc.y))
-            temp_x = cell.loc.x + dx * next_embryo.model.dt
-            temp_y = cell.loc.y + dy * next_embryo.model.dt
-            temp = Point(temp_x, temp_y, next_embryo.model.potential(Fate(temp_x, temp_y)))
-            cell.loc = temp
+            # dx, dy = next_embryo.model.gradient(Fate(cell.loc.x, cell.loc.y))
 
-            # update the fate of the cell
-            dx, dy = next_embryo.model.gradient(cell.fate)
-            temp_x = cell.fate.x + dx * next_embryo.model.dt
-            temp_y = cell.fate.y + dy * next_embryo.model.dt
-            temp = Fate(temp_x, temp_y)
-            temp.apply_noise()
-            cell.fate = temp
+            # temp_x = cell.loc.x + dx * next_embryo.model.dt
+            # temp_y = cell.loc.y + dy * next_embryo.model.dt
+            # temp = Point(temp_x, temp_y, next_embryo.model.potential(Fate(temp_x, temp_y)))
+            # cell.loc = temp
+
+            cell.loc.x += np.random.normal(0, 0.04)
+            cell.loc.y += -0.01
+
+            # # update the fate of the cell
+            # dx, dy = next_embryo.model.gradient(cell.fate)
+            # temp_x = cell.fate.x + dx * next_embryo.model.dt
+            # temp_y = cell.fate.y + dy * next_embryo.model.dt
+            # temp = Fate(temp_x, temp_y)
+            # temp.apply_noise()
+            # cell.fate = temp
 
         return next_embryo
 
@@ -169,4 +175,5 @@ def generate_fake_history(initialize_embryo: Embryo, timesteps: int) -> History:
         history.add(next_embryo)
 
     return history
+
 
