@@ -18,6 +18,63 @@ class Visualizer:
     GRANULARITY = 100
     MIN_BOUND = 1.3
 
+    def _compute_bounds(self, embryo: Embryo) -> tuple[float, float, float, float]:
+        """
+        Computes the plot bounds based on the embryo's cell locations.
+
+        Args:
+            embryo (Embryo): The embryo containing cells.
+
+        Returns:
+            tuple[float, float, float, float]: (min_x, max_x, min_y, max_y)
+        """
+        embryo_coords = np.array([cell.loc.to_array() for cell in embryo.cells])
+        min_x, max_x = np.min(embryo_coords[:, 0]), np.max(embryo_coords[:, 0])
+        min_y, max_y = np.min(embryo_coords[:, 1]), np.max(embryo_coords[:, 1])
+
+        # Enforce minimum bounds
+        min_x = min(min_x, -self.MIN_BOUND / self.SCALE)
+        max_x = max(max_x, self.MIN_BOUND / self.SCALE)
+        min_y = min(min_y, -self.MIN_BOUND / self.SCALE)
+        max_y = max(max_y, self.MIN_BOUND / self.SCALE)
+
+        return min_x, max_x, min_y, max_y
+
+    def _create_meshgrid(self, min_x: float, max_x: float, min_y: float, max_y: float) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Creates a meshgrid for visualization.
+
+        Args:
+            min_x (float): Minimum x-coordinate.
+            max_x (float): Maximum x-coordinate.
+            min_y (float): Minimum y-coordinate.
+            max_y (float): Maximum y-coordinate.
+
+        Returns:
+            tuple[np.ndarray, np.ndarray]: Meshgrid arrays X, Y.
+        """
+        X = np.linspace(min_x * self.SCALE, max_x * self.SCALE, self.GRANULARITY)
+        Y = np.linspace(min_y * self.SCALE, max_y * self.SCALE, self.GRANULARITY)
+        return np.meshgrid(X, Y)
+
+    def _compute_streamlines(self, model: GeomModel, X: np.ndarray, Y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Computes normalized streamlines for the model's potential.
+
+        Args:
+            model (GeomModel): The model governing the dynamics.
+            X (np.ndarray): Meshgrid X values.
+            Y (np.ndarray): Meshgrid Y values.
+
+        Returns:
+            tuple[np.ndarray, np.ndarray]: Normalized gradients (dX, dY).
+        """
+        dX, dY = model.gradient(Fate(X, Y))
+        magnitude = np.sqrt(dX**2 + dY**2)
+        dX /= (magnitude + 1e-8)
+        dY /= (magnitude + 1e-8)
+        return dX, dY
+
     def plot_landscape(self, embryo: Embryo, show: bool = True) -> None:
         """
         Creates a 3D plot of the geometrical model landscape.
@@ -26,38 +83,18 @@ class Visualizer:
             embryo (Embryo): The embryo to visualize.
             show (bool): Whether to display the plot.
         """
-        # Get bounds for the plot
-        embryo_coords = np.array([cell.loc.to_array() for cell in embryo.cells])
-        min_x, max_x = np.min(embryo_coords[:, 0]), np.max(embryo_coords[:, 0])
-        min_y, max_y = np.min(embryo_coords[:, 1]), np.max(embryo_coords[:, 1])
-
-        # Ensure minimum bounds
-        min_x = min(min_x, -self.MIN_BOUND / self.SCALE)
-        max_x = max(max_x, self.MIN_BOUND / self.SCALE)
-        min_y = min(min_y, -self.MIN_BOUND / self.SCALE)
-        max_y = max(max_y, self.MIN_BOUND / self.SCALE)
-
-        # Create the meshgrid
-        X = np.linspace(min_x * self.SCALE, max_x * self.SCALE, self.GRANULARITY)
-        Y = np.linspace(min_y * self.SCALE, max_y * self.SCALE, self.GRANULARITY)
-        X, Y = np.meshgrid(X, Y)
+        # Compute bounds and meshgrid
+        min_x, max_x, min_y, max_y = self._compute_bounds(embryo)
+        X, Y = self._create_meshgrid(min_x, max_x, min_y, max_y)
         Z = embryo.model.potential(Fate(X, Y))
-
-        min_z, max_z = np.min(Z), np.max(Z)
 
         # Plot the landscape
         fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
         ls = LightSource(0, 0)
         rgb = ls.shade(Z, cmap=cm.viridis, blend_mode="soft")
 
-        ax.plot_surface(
-            X, Y, Z,
-            cmap='viridis',
-            facecolors=rgb,
-            antialiased=False,
-            alpha=0.8,
-        )
-        ax.contourf(X, Y, Z, zdir="z", offset=-max_z, cmap="RdYlBu_r")
+        ax.plot_surface(X, Y, Z, cmap='viridis', facecolors=rgb, alpha=0.8)
+        ax.contourf(X, Y, Z, zdir="z", offset=np.min(Z), cmap="RdYlBu_r")
 
         # Plot cells
         for cell in embryo.cells:
@@ -82,27 +119,11 @@ class Visualizer:
         """
         base_embryo = history[0]
 
-        # Get bounds
-        embryo_coords = np.array([cell.loc.to_array() for cell in base_embryo.cells])
-        min_x, max_x = np.min(embryo_coords[:, 0]), np.max(embryo_coords[:, 0])
-        min_y, max_y = np.min(embryo_coords[:, 1]), np.max(embryo_coords[:, 1])
-
-        min_x = min(min_x, -self.MIN_BOUND / self.SCALE)
-        max_x = max(max_x, self.MIN_BOUND / self.SCALE)
-        min_y = min(min_y, -self.MIN_BOUND / self.SCALE)
-        max_y = max(max_y, self.MIN_BOUND / self.SCALE)
-
-        # Create the meshgrid
-        X = np.linspace(min_x * self.SCALE, max_x * self.SCALE, self.GRANULARITY)
-        Y = np.linspace(min_y * self.SCALE, max_y * self.SCALE, self.GRANULARITY)
-        X, Y = np.meshgrid(X, Y)
+        # Compute bounds, meshgrid, and streamlines
+        min_x, max_x, min_y, max_y = self._compute_bounds(base_embryo)
+        X, Y = self._create_meshgrid(min_x, max_x, min_y, max_y)
         Z = base_embryo.model.potential(Fate(X, Y))
-
-        # Streamlines
-        dX, dY = base_embryo.model.gradient(Fate(X, Y))
-        magnitude = np.sqrt(dX**2 + dY**2)
-        dX /= (magnitude + 1e-8)
-        dY /= (magnitude + 1e-8)
+        dX, dY = self._compute_streamlines(base_embryo.model, X, Y)
 
         # Plot the trajectories
         fig, ax = plt.subplots()
@@ -110,11 +131,7 @@ class Visualizer:
         ax.streamplot(X, Y, dX, dY, color="grey", density=1, linewidth=0.5)
 
         # Scatter plot for history
-        points = np.array([
-            cell.loc.to_array()
-            for embryo in history
-            for cell in embryo.cells
-        ])
+        points = np.array([cell.loc.to_array() for embryo in history for cell in embryo.cells])
         ax.scatter(points[:, 0], points[:, 1], color="blue", s=1)
 
         # Initial cell locations
@@ -142,47 +159,29 @@ class Visualizer:
         fig, ax = plt.subplots()
         base_embryo = history[0]
 
-        # Set up bounds
-        embryo_coords = np.array([cell.loc.to_array() for cell in base_embryo.cells])
-        min_x, max_x = np.min(embryo_coords[:, 0]), np.max(embryo_coords[:, 0])
-        min_y, max_y = np.min(embryo_coords[:, 1]), np.max(embryo_coords[:, 1])
-
-        min_x = min(min_x, -self.MIN_BOUND / self.SCALE)
-        max_x = max(max_x, self.MIN_BOUND / self.SCALE)
-        min_y = min(min_y, -self.MIN_BOUND / self.SCALE)
-        max_y = max(max_y, self.MIN_BOUND / self.SCALE)
-
-        # Create the meshgrid
-        X = np.linspace(min_x * self.SCALE, max_x * self.SCALE, self.GRANULARITY)
-        Y = np.linspace(min_y * self.SCALE, max_y * self.SCALE, self.GRANULARITY)
-        X, Y = np.meshgrid(X, Y)
+        # Compute bounds, meshgrid, and streamlines
+        min_x, max_x, min_y, max_y = self._compute_bounds(base_embryo)
+        X, Y = self._create_meshgrid(min_x, max_x, min_y, max_y)
         Z = base_embryo.model.potential(Fate(X, Y))
+        dX, dY = self._compute_streamlines(base_embryo.model, X, Y)
 
-        # Streamlines
-        dX, dY = base_embryo.model.gradient(Fate(X, Y))
-        magnitude = np.sqrt(dX**2 + dY**2)
-        dX /= (magnitude + 1e-8)
-        dY /= (magnitude + 1e-8)
-
-        # Prepare for animation
         def update(frame):
             ax.clear()
             contour = ax.contourf(X, Y, Z, cmap="RdYlBu_r", alpha=0.7)
             ax.streamplot(X, Y, dX, dY, color="grey", density=1, linewidth=0.5)
 
             # Plot cell trajectories up to the current frame
-            for idx, embryo in enumerate(history[:frame + 1]):
+            for embryo in history[:frame + 1]:
                 for cell in embryo.cells:
                     ax.scatter(cell.loc.x, cell.loc.y, color="blue", s=3)
 
-            ax.set_title(f"Time Step {frame + 1}")
             ax.set_xlim(min_x, max_x)
             ax.set_ylim(min_y, max_y)
+            ax.set_title(f"Time Step {frame + 1}")
             ax.set_xlabel("X")
             ax.set_ylabel("Y")
             return contour
 
-        # Create animation
         ani = FuncAnimation(fig, update, frames=len(history), repeat=False)
         ani.save(gif_path, fps=fps, writer="pillow")
         plt.close(fig)
