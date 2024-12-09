@@ -14,9 +14,9 @@ class Visualizer:
     """
 
     # Class-level constants for plot scaling
-    SCALE = 2
-    GRANULARITY = 100
-    MIN_BOUND = 1.3
+    SCALE = 2  # how  much bigger the plot should be than the point bounding box
+    GRANULARITY = 100  # how many points to sample in each dimension
+    MIN_BOUND = 1.3  # smallest possible size for the plot
 
     def _compute_bounds(self, embryo: Embryo) -> tuple[float, float, float, float]:
         """
@@ -40,7 +40,9 @@ class Visualizer:
 
         return min_x, max_x, min_y, max_y
 
-    def _create_meshgrid(self, min_x: float, max_x: float, min_y: float, max_y: float) -> tuple[np.ndarray, np.ndarray]:
+    def _create_meshgrid(
+        self, min_x: float, max_x: float, min_y: float, max_y: float
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Creates a meshgrid for visualization.
 
@@ -57,7 +59,9 @@ class Visualizer:
         Y = np.linspace(min_y * self.SCALE, max_y * self.SCALE, self.GRANULARITY)
         return np.meshgrid(X, Y)
 
-    def _compute_streamlines(self, model: GeomModel, X: np.ndarray, Y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def _compute_streamlines(
+        self, model: GeomModel, X: np.ndarray, Y: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Computes normalized streamlines for the model's potential.
 
@@ -71,8 +75,8 @@ class Visualizer:
         """
         dX, dY = model.gradient(Fate(X, Y))
         magnitude = np.sqrt(dX**2 + dY**2)
-        dX /= (magnitude + 1e-8)
-        dY /= (magnitude + 1e-8)
+        dX /= magnitude + 1e-8
+        dY /= magnitude + 1e-8
         return dX, dY
 
     def plot_landscape(self, embryo: Embryo, show: bool = True) -> None:
@@ -87,14 +91,38 @@ class Visualizer:
         min_x, max_x, min_y, max_y = self._compute_bounds(embryo)
         X, Y = self._create_meshgrid(min_x, max_x, min_y, max_y)
         Z = embryo.model.potential(Fate(X, Y))
+        min_z, max_z = np.min(Z), np.max(Z)
 
         # Plot the landscape
         fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
         ls = LightSource(0, 0)
-        rgb = ls.shade(Z, cmap=cm.viridis, blend_mode="soft")
+        rgb = ls.shade(Z, cmap=cm.viridis, vert_exag=0.1, blend_mode="soft")
 
-        ax.plot_surface(X, Y, Z, cmap='viridis', facecolors=rgb, alpha=0.8)
-        ax.contourf(X, Y, Z, zdir="z", offset=np.min(Z), cmap="RdYlBu_r")
+        ax.plot_surface(
+            X,
+            Y,
+            Z,
+            cmap="viridis",
+            facecolors=rgb,  # with our cutstom shading
+            linewidth=0,
+            antialiased=False,
+            shade=False,
+            alpha=0.8,
+            rstride=5,
+            cstride=5,
+            # edgecolor='black',
+            # lw=0.01,
+        )
+        ax.contourf(
+            X,
+            Y,
+            Z,
+            zdir="z",
+            offset=-max_z,
+            cmap="RdYlBu_r",
+            # linewidths=0.5,
+            # linestyle='solid',
+        )
 
         # Plot cells
         for cell in embryo.cells:
@@ -106,6 +134,11 @@ class Visualizer:
         ax.set_zlabel(f"{embryo.model.name} Potential")
         ax.set_title(f"{embryo.model.name} Landscape")
         ax.grid(False)
+        ax.xaxis.pane.fill = False
+        ax.yaxis.pane.fill = False
+        ax.zaxis.pane.fill = False
+        ax.set(zlim=-max_z)
+        # ax.view_init(elev=20, azim=45)
         if show:
             plt.show()
 
@@ -126,17 +159,23 @@ class Visualizer:
         dX, dY = self._compute_streamlines(base_embryo.model, X, Y)
 
         # Plot the trajectories
-        fig, ax = plt.subplots()
-        contour = ax.contourf(X, Y, Z, cmap="RdYlBu_r")
-        ax.streamplot(X, Y, dX, dY, color="grey", density=1, linewidth=0.5)
+        fig, ax = plt.subplots(figsize=(8, 6))
+        contour = ax.contourf(X, Y, Z, cmap="RdYlBu_r", alpha=0.8)
+        ax.streamplot(X, Y, dX, dY, color="grey", density=1, linewidth=0.5, arrowsize=1.5)
 
-        # Scatter plot for history
-        points = np.array([cell.loc.to_array() for embryo in history for cell in embryo.cells])
-        ax.scatter(points[:, 0], points[:, 1], color="blue", s=1)
+        # Plot all trajectories
+        for embryo in history:
+            for cell in embryo.cells:
+                ax.scatter(cell.loc.x, cell.loc.y, color="blue", s=5, alpha=0.6)
 
-        # Initial cell locations
-        initial_points = np.array([cell.loc.to_array() for cell in base_embryo.cells])
-        ax.scatter(initial_points[:, 0], initial_points[:, 1], color="red", s=3)
+        # Highlight initial positions
+        for cell in base_embryo.cells:
+            ax.scatter(
+                cell.loc.x,
+                cell.loc.y,
+                color="red",
+                s=25
+            )
 
         # Style the plot
         ax.set_xlabel("X")
@@ -147,7 +186,9 @@ class Visualizer:
         if show:
             plt.show()
 
-    def save_as_gif(self, history: History, gif_path: str = "output.gif", fps: int = 10) -> None:
+    def save_as_gif(
+        self, history: History, gif_path: str = "output.gif", fps: int = 10
+    ) -> None:
         """
         Saves the evolution of cell trajectories as a GIF.
 
@@ -171,7 +212,7 @@ class Visualizer:
             ax.streamplot(X, Y, dX, dY, color="grey", density=1, linewidth=0.5)
 
             # Plot cell trajectories up to the current frame
-            for embryo in history[:frame + 1]:
+            for embryo in history[: frame + 1]:
                 for cell in embryo.cells:
                     ax.scatter(cell.loc.x, cell.loc.y, color="blue", s=3)
 
