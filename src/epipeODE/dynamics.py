@@ -2,6 +2,7 @@ from copy import deepcopy
 from .data_classes import Cell, Embryo, History, Fate, Point
 from .models import GeomModel, HeteroclinicFlip
 import numpy as np
+from concurrent.futures import ThreadPoolExecutor
 
 
 def update_state(model: GeomModel, cell: Cell, population: list[Cell] = None) -> None:
@@ -36,30 +37,42 @@ def update_state(model: GeomModel, cell: Cell, population: list[Cell] = None) ->
     cell.record_state()
 
 
-def generate_history(initial_embryo: Embryo, timesteps: int) -> History:
+def update_embryo_parallel(model: GeomModel, cells: list[Cell]) -> None:
     """
-    Generates the history of an embryo over a specified number of timesteps.
+    Updates all cells in the embryo in parallel.
+
+    Args:
+        model (GeomModel): The model governing the dynamics.
+        cells (list[Cell]): The list of cells to be updated.
+    """
+    # TODO: set the max number of workers inside the ThreadPool
+    with ThreadPoolExecutor() as executor:
+        executor.map(lambda cell: update_state(model, cell, cells), cells)
+
+
+def generate_history(initial_embryo: Embryo, timesteps: int, save_interval: int = 10) -> History:
+    """
+    Generates the history of an embryo over a specified number of timesteps, saving snapshots at intervals.
 
     Args:
         initial_embryo (Embryo): The initial state of the embryo.
         timesteps (int): The number of timesteps to simulate.
+        save_interval (int): The interval at which to save snapshots (default is 5).
 
     Returns:
-        History: A history object containing snapshots of the embryo at each timestep.
+        History: A history object containing snapshots of the embryo at the specified intervals.
     """
     history = History()
-    history.add(deepcopy(initial_embryo))
+    current_embryo = deepcopy(initial_embryo)  # Use a single embryo object for updates
+    history.add(deepcopy(current_embryo))  # Save the initial state
 
-    for _ in range(timesteps):
-        # Get the current state of the embryo
-        current_embryo = deepcopy(history.snapshots[-1])
+    for t in range(timesteps):
+        # Update cells in parallel
+        update_embryo_parallel(current_embryo.model, current_embryo.cells)
 
-        # Update each cell in the embryo
-        for cell in current_embryo.cells:
-            update_state(current_embryo.model, cell, current_embryo.cells)
-
-        # Add the updated state to the history
-        history.add(current_embryo)
+        # Save snapshot only at the specified interval
+        if (t + 1) % save_interval == 0:
+            history.add(deepcopy(current_embryo))  # Save a copy of the current state
 
     return history
 
@@ -78,7 +91,7 @@ def initialize_embryo(model: GeomModel, num_cells: int) -> Embryo:
     cells = []
     for _ in range(num_cells):
         # Initialize random states near the origin
-        x, y = np.random.normal(0, 0.1), np.random.normal(0.1, 0.1)
+        x, y = np.random.normal(0.0, 0.1), np.random.normal(0.0, 0.1)
         fate = Fate(x=x, y=y)
         loc = Point(x, y, model.potential(fate))
         cells.append(Cell(loc=loc, fate=fate))
