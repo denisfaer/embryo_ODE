@@ -3,6 +3,7 @@ from .data_classes import Cell, Embryo, History, Fate, Point
 from .models import GeomModel, HeteroclinicFlip
 import numpy as np
 
+
 def update_state(model: GeomModel, cell: Cell, population: list[Cell] = None) -> None:
     """
     Updates the state of a single cell based on the model dynamics.
@@ -18,14 +19,15 @@ def update_state(model: GeomModel, cell: Cell, population: list[Cell] = None) ->
     else:
         gradient = model.gradient(cell.fate)
 
-    dx, dy = gradient
+    # Treat the gradient as a Fate object
+    gradient_fate = Fate(x=gradient[0], y=gradient[1])
 
-    # Update the cell's state (fate)
-    cell.fate.x += dx * model.dt
-    cell.fate.y += dy * model.dt
+    # Add noise directly to the gradient
+    gradient_fate.apply_noise()
 
-    # Apply noise to the state
-    cell.fate.apply_noise()
+    # Update the cell's state using the noisy gradient
+    cell.fate.x += gradient_fate.x * model.dt
+    cell.fate.y += gradient_fate.y * model.dt
 
     # Update spatial location based on the potential
     cell.loc = Point(cell.fate.x, cell.fate.y, model.potential(cell.fate))
