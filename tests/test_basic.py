@@ -26,7 +26,7 @@ def test_init():
     assert c.loc == p
     assert c.fate == f
     assert len(c.history) == 1
-    assert c.history[0] == [p, f]
+    assert c.history[0] == (p, f)
 
 def test_compare():
     p1 = Point(1, 2, 3)
