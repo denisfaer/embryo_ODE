@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LightSource
 from matplotlib import cm
+from matplotlib.animation import FuncAnimation
 from typing import Optional
 from .data_classes import Embryo, History, Fate
 from .models import GeomModel
@@ -128,3 +129,60 @@ class Visualizer:
         cbar.set_label(f"{base_embryo.model.name} Potential")
         if show:
             plt.show()
+
+    def save_as_gif(self, history: History, gif_path: str = "output.gif", fps: int = 10) -> None:
+        """
+        Saves the evolution of cell trajectories as a GIF.
+
+        Args:
+            history (History): The history of the embryo to animate.
+            gif_path (str): Path to save the output GIF.
+            fps (int): Frames per second for the GIF.
+        """
+        fig, ax = plt.subplots()
+        base_embryo = history[0]
+
+        # Set up bounds
+        embryo_coords = np.array([cell.loc.to_array() for cell in base_embryo.cells])
+        min_x, max_x = np.min(embryo_coords[:, 0]), np.max(embryo_coords[:, 0])
+        min_y, max_y = np.min(embryo_coords[:, 1]), np.max(embryo_coords[:, 1])
+
+        min_x = min(min_x, -self.MIN_BOUND / self.SCALE)
+        max_x = max(max_x, self.MIN_BOUND / self.SCALE)
+        min_y = min(min_y, -self.MIN_BOUND / self.SCALE)
+        max_y = max(max_y, self.MIN_BOUND / self.SCALE)
+
+        # Create the meshgrid
+        X = np.linspace(min_x * self.SCALE, max_x * self.SCALE, self.GRANULARITY)
+        Y = np.linspace(min_y * self.SCALE, max_y * self.SCALE, self.GRANULARITY)
+        X, Y = np.meshgrid(X, Y)
+        Z = base_embryo.model.potential(Fate(X, Y))
+
+        # Streamlines
+        dX, dY = base_embryo.model.gradient(Fate(X, Y))
+        magnitude = np.sqrt(dX**2 + dY**2)
+        dX /= (magnitude + 1e-8)
+        dY /= (magnitude + 1e-8)
+
+        # Prepare for animation
+        def update(frame):
+            ax.clear()
+            contour = ax.contourf(X, Y, Z, cmap="RdYlBu_r", alpha=0.7)
+            ax.streamplot(X, Y, dX, dY, color="grey", density=1, linewidth=0.5)
+
+            # Plot cell trajectories up to the current frame
+            for idx, embryo in enumerate(history[:frame + 1]):
+                for cell in embryo.cells:
+                    ax.scatter(cell.loc.x, cell.loc.y, color="blue", s=3)
+
+            ax.set_title(f"Time Step {frame + 1}")
+            ax.set_xlim(min_x, max_x)
+            ax.set_ylim(min_y, max_y)
+            ax.set_xlabel("X")
+            ax.set_ylabel("Y")
+            return contour
+
+        # Create animation
+        ani = FuncAnimation(fig, update, frames=len(history), repeat=False)
+        ani.save(gif_path, fps=fps, writer="pillow")
+        plt.close(fig)
