@@ -1,4 +1,3 @@
-from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Iterator
 import numpy as np
@@ -119,7 +118,7 @@ class Embryo:
         model (GeomModel): The geometrical model governing the cells.
         cells (List[Cell]): A list of cells in the embryo.
     """
-    model: "GeomModel"
+    model: GeomModel
     cells: List[Cell]
 
     def __repr__(self):
