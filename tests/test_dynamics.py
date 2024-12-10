@@ -21,7 +21,7 @@ def test_update_state():
 def test_generate_history():
     model = DualCusp()
     embryo = initialize_embryo(model, num_cells=10)
-    history = generate_history(embryo, timesteps=20)
+    history = generate_history(embryo, timesteps=20, save_interval=1)
 
     assert len(history.snapshots) == 21
     for snapshot in history.snapshots:
