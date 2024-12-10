@@ -1,47 +1,7 @@
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List
+from .models import GeomModel
 from .data_classes import Fate
-
-
-@dataclass
-class GeomModel(ABC):
-    """
-    Abstract base class for geometrical models.
-
-    Attributes:
-        name (str): The name of the geometrical model.
-        dt (float): Time step for dynamics evolution.
-    """
-
-    name: str
-    dt: float = 0.001
-
-    @abstractmethod
-    def potential(self, cell: Fate) -> float:
-        """
-        Computes the potential of a cell in the model's landscape.
-
-        Args:
-            cell (Fate): The state of the cell (x, y).
-
-        Returns:
-            float: The potential value at the given state.
-        """
-        pass
-
-    @abstractmethod
-    def gradient(self, cell: Fate) -> tuple[float, float]:
-        """
-        Computes the gradient of the potential at a given cell's state.
-
-        Args:
-            cell (Fate): The state of the cell (x, y).
-
-        Returns:
-            tuple[float, float]: The gradient (dx, dy) of the potential.
-        """
-        pass
 
 
 @dataclass
