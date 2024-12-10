@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import List
-from .models import GeomModel
-from .data_classes import Fate
+from .data_classes import Fate, GeomModel
 
 
 @dataclass
