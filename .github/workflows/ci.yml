@@ -8,13 +8,39 @@ on:
       - main
 
 jobs:
-  lint-and-tests:
-    name: "Tests and Lint on Python ${{ matrix.python-version }} for ${{ matrix.runs-on }}"
+  lint:
+    name: "Lint for ${{ matrix.runs-on }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on:
+          - ubuntu-latest
+          - macOS-latest
+          - windows-latest
+
+    runs-on: "${{ matrix.runs-on }}"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: yezz123/setup-uv@v4
+        with:
+          uv-venv: ".venv"
+
+      - name: Install pre-commit
+        run: uv pip install pre-commit
+
+      - name: Run pre-commit
+        run: pre-commit run --all-files --show-diff-on-failure
+
+  tests:
+    name: "Tests on Python ${{ matrix.python-version }} for ${{ matrix.runs-on }}"
     strategy:
       fail-fast: false
       matrix:
         python-version:
-          - "3.11"
+          - "3.12"
+          - "3.13"
         runs-on:
           - ubuntu-latest
           - macOS-latest
@@ -28,14 +54,16 @@ jobs:
         with:
           python-version: "${{ matrix.python-version }}"
 
+      - name: Setup uv
+        uses: yezz123/setup-uv@v4
+        with:
+          uv-venv: ".venv"
+
       - name: Install package and test dependencies
         run: pip install -e .[test]
 
-      - name: Install ruff for linting
-        run: pip install ruff
-
-      - name: Run ruff
-        run: ruff check .
+      - name: Install nox
+        run: uv pip install nox[uv]
 
       - name: Run tests
-        run: pytest
+        run: nox -s tests
