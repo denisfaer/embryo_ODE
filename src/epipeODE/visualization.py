@@ -89,14 +89,14 @@ class Visualizer:
 
         # Plot the landscape
         fig, ax = plt.subplots(subplot_kw={"projection": "3d"}, figsize=(8, 6))
-        
+
         ls = LightSource(0, 0)
         rgb = ls.shade(Z, cmap=cm.viridis, vert_exag=0.1, blend_mode="soft")
 
         ax.plot_surface(
             X, Y, Z,
             cmap="viridis",
-            facecolors=rgb,  # with our cutstom shading
+            facecolors=rgb,  # with our custom shading
             linewidth=0,
             antialiased=False,
             shade=False,
@@ -198,7 +198,7 @@ class Visualizer:
 
         # Set up the figure
         fig, ax = plt.subplots(figsize=(8, 6))
-        
+
         # Plot static elements outside the update function
         contour = ax.contourf(X, Y, Z, cmap="RdYlBu_r", alpha=0.8)
         ax.streamplot(X, Y, dX, dY, color="grey", density=1, linewidth=0.5, arrowsize=1.5)
@@ -230,7 +230,7 @@ class Visualizer:
             ax.set_xlabel("X")
             ax.set_ylabel("Y")
             ax.set_title(f"{base_embryo.model.name} Evolution")
-                
+
             return scatters
 
         # Generate the animation

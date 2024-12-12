@@ -215,7 +215,7 @@ class History:
             Iterator[Embryo]: An iterator over the snapshots.
         """
         return iter(self.snapshots)
-    
+
     def __len__(self) -> int:
         """
         Returns the number of snapshots in the history.
