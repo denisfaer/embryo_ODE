@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+
 from .data_classes import Fate, GeomModel
 
 
@@ -43,7 +43,9 @@ class DualCusp(GeomModel):
         """
         x, y = cell.x, cell.y
         dx = -(4 * x**3 + 8 * x * y + self.f1)  # Negative derivative w.r.t x
-        dy = -(4 * y**3 - 3 * y**2 + 4 * x**2 + 2 * y - self.K1)  # Negative derivative w.r.t y
+        dy = -(
+            4 * y**3 - 3 * y**2 + 4 * x**2 + 2 * y - self.K1
+        )  # Negative derivative w.r.t y
         return dx, dy
 
 
@@ -66,12 +68,12 @@ class HeteroclinicFlip(GeomModel):
     b: float = 0.0
     fex: float = 0.0
 
-    def calculate_feedback(self, population: List[Fate]) -> float:
+    def calculate_feedback(self, population: list[Fate]) -> float:
         """
         Calculates the population-dependent feedback term (f2).
 
         Args:
-            population (List[Fate]): List of cell states in the population.
+            population (list[Fate]): List of cell states in the population.
 
         Returns:
             float: Feedback term f2.
@@ -101,14 +103,14 @@ class HeteroclinicFlip(GeomModel):
         return x**4 + y**4 - y**3 + 2 * x**2 * y - y**2 + f2 * x + self.K2 * y
 
     def gradient(
-        self, cell: Fate, population: List[Fate] = None
+        self, cell: Fate, population: list[Fate] | None = None
     ) -> tuple[float, float]:
         """
         Computes the gradient of the Heteroclinic Flip model potential.
 
         Args:
             cell (Fate): The state of the cell (x, y).
-            population (List[Fate], optional): The population of cells (needed for feedback calculation).
+            population (list[Fate], optional): The population of cells (needed for feedback calculation).
 
         Returns:
             tuple[float, float]: The gradient (dx, dy).
@@ -116,5 +118,7 @@ class HeteroclinicFlip(GeomModel):
         x, y = cell.x, cell.y
         f2 = self.calculate_feedback(population) if population else 0
         dx = -(4 * x**3 + 4 * x * y + f2)  # Negative derivative w.r.t x
-        dy = -(4 * y**3 - 3 * y**2 + 2 * x**2 - 2 * y + self.K2)  # Negative derivative w.r.t y
+        dy = -(
+            4 * y**3 - 3 * y**2 + 2 * x**2 - 2 * y + self.K2
+        )  # Negative derivative w.r.t y
         return dx, dy

@@ -1,11 +1,15 @@
-from copy import deepcopy
-from .data_classes import Cell, Embryo, History, Fate, Point
-from .models import GeomModel, HeteroclinicFlip
-import numpy as np
 from concurrent.futures import ThreadPoolExecutor
+from copy import deepcopy
+
+import numpy as np
+
+from .data_classes import Cell, Embryo, Fate, History, Point
+from .models import GeomModel, HeteroclinicFlip
 
 
-def update_state(model: GeomModel, cell: Cell, population: list[Cell] = None) -> None:
+def update_state(
+    model: GeomModel, cell: Cell, population: list[Cell] | None = None
+) -> None:
     """
     Updates the state of a single cell based on the model dynamics.
 
@@ -15,7 +19,7 @@ def update_state(model: GeomModel, cell: Cell, population: list[Cell] = None) ->
         population (list[Cell], optional): The population of cells (required for models with feedback).
     """
     # Compute the gradient of the potential
-    if isinstance(model, HeteroclinicFlip):
+    if isinstance(model, HeteroclinicFlip) and population is not None:
         gradient = model.gradient(cell.fate, [c.fate for c in population])
     else:
         gradient = model.gradient(cell.fate)
@@ -50,7 +54,9 @@ def update_embryo_parallel(model: GeomModel, cells: list[Cell]) -> None:
         executor.map(lambda cell: update_state(model, cell, cells), cells)
 
 
-def generate_history(initial_embryo: Embryo, timesteps: int, save_interval: int = 10) -> History:
+def generate_history(
+    initial_embryo: Embryo, timesteps: int, save_interval: int = 10
+) -> History:
     """
     Generates the history of an embryo over a specified number of timesteps, saving snapshots at intervals.
 
@@ -78,11 +84,11 @@ def generate_history(initial_embryo: Embryo, timesteps: int, save_interval: int 
 
 
 def initialize_embryo(
-        model: GeomModel,
-        num_cells: int,
-        spread: float = 0.1,
-        origin: tuple[float, float] = (0.0, 0.0)
-    ) -> Embryo:
+    model: GeomModel,
+    num_cells: int,
+    spread: float = 0.1,
+    origin: tuple[float, float] = (0.0, 0.0),
+) -> Embryo:
     """
     Initializes an embryo with random cell states.
 
@@ -96,7 +102,10 @@ def initialize_embryo(
     cells = []
     for _ in range(num_cells):
         # Initialize random states near the origin
-        x, y = np.random.normal(0.0, spread) + origin[0], np.random.normal(0.0, spread) + origin[1]
+        x, y = (
+            np.random.normal(0.0, spread) + origin[0],
+            np.random.normal(0.0, spread) + origin[1],
+        )
         fate = Fate(x=x, y=y)
         loc = Point(x, y, model.potential(fate))
         cells.append(Cell(loc=loc, fate=fate))

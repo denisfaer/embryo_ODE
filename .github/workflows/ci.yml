@@ -8,8 +8,44 @@ on:
       - main
 
 jobs:
-  lint-and-tests:
-    name: "Tests and Lint on Python ${{ matrix.python-version }} for ${{ matrix.runs-on }}"
+  lint:
+    name: "Lint for ${{ matrix.runs-on }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on:
+          - ubuntu-latest
+          - macOS-latest
+          - windows-latest
+
+    runs-on: "${{ matrix.runs-on }}"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: false
+
+      - name: Create and activate virtual environment
+        run: |
+          uv venv
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo ".venv\\Scripts" >> $GITHUB_PATH
+          else
+            echo ".venv/bin" >> $GITHUB_PATH
+          fi
+        shell: bash
+
+      - name: Install pre-commit
+        run: uv pip install pre-commit
+
+      - name: Run pre-commit
+        shell: bash
+        run: pre-commit run --all-files --show-diff-on-failure
+
+  tests:
+    name: "Tests on Python ${{ matrix.python-version }} for ${{ matrix.runs-on }}"
     strategy:
       fail-fast: false
       matrix:
@@ -24,18 +60,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v4
         with:
+          enable-cache: false
           python-version: "${{ matrix.python-version }}"
 
+      - name: Create and activate virtual environment
+        run: |
+          uv venv
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo ".venv\\Scripts" >> $GITHUB_PATH
+          else
+            echo ".venv/bin" >> $GITHUB_PATH
+          fi
+        shell: bash
+
       - name: Install package and test dependencies
-        run: pip install -e .[test]
+        run: uv pip install -e .[test]
 
-      - name: Install ruff for linting
-        run: pip install ruff
-
-      - name: Run ruff
-        run: ruff check .
+      - name: Install nox
+        run: uv pip install nox[uv]
 
       - name: Run tests
-        run: pytest
+        shell: bash
+        run: nox -s tests

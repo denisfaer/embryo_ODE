@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import List, Iterator
+from collections.abc import Iterator
+from dataclasses import dataclass, field
+
 import numpy as np
 from numpy.typing import NDArray
+
 
 @dataclass
 class Point:
@@ -14,6 +16,7 @@ class Point:
         y (float): The y-coordinate of the point.
         z (float): The z-coordinate of the point.
     """
+
     x: float = 0.0
     y: float = 0.0
     z: float = 0.0
@@ -28,7 +31,9 @@ class Point:
         Returns:
             float: The Euclidean distance to the destination point.
         """
-        return np.sqrt((self.x - dest.x) ** 2 + (self.y - dest.y) ** 2 + (self.z - dest.z) ** 2)
+        return np.sqrt(
+            (self.x - dest.x) ** 2 + (self.y - dest.y) ** 2 + (self.z - dest.z) ** 2
+        )
 
     def __getitem__(self, key: int) -> float:
         """
@@ -51,6 +56,7 @@ class Point:
         """
         return np.array([self.x, self.y, self.z], dtype=np.float64)
 
+
 @dataclass
 class Fate:
     """
@@ -61,6 +67,7 @@ class Fate:
         y (float): The y-coordinate of the cell's state.
         noise_level (float): The standard deviation for Gaussian noise (default is 0.05).
     """
+
     x: float
     y: float
     noise_level: float = 0.05
@@ -72,6 +79,7 @@ class Fate:
         self.x += np.random.normal(0, self.noise_level)
         self.y += np.random.normal(0, self.noise_level)
 
+
 @dataclass
 class Cell:
     """
@@ -80,11 +88,12 @@ class Cell:
     Attributes:
         loc (Point): The spatial location of the cell.
         fate (Fate): The state of the cell.
-        history (List[tuple[Point, Fate]]): A list of recorded states for the cell.
+        history (list[tuple[Point, Fate]]): A list of recorded states for the cell.
     """
+
     loc: Point
     fate: Fate
-    history: List[tuple[Point, Fate]] = None
+    history: list[tuple[Point, Fate]] | None = None
 
     def __post_init__(self):
         """
@@ -106,8 +115,11 @@ class Cell:
         Returns:
             str: A string representation of the cell's location and fate.
         """
-        return (f"Cell(loc=({self.loc.x:.2f}, {self.loc.y:.2f}, {self.loc.z:.2f}), "
-                f"fate=({self.fate.x:.2f}, {self.fate.y:.2f}))")
+        return (
+            f"Cell(loc=({self.loc.x:.2f}, {self.loc.y:.2f}, {self.loc.z:.2f}), "
+            f"fate=({self.fate.x:.2f}, {self.fate.y:.2f}))"
+        )
+
 
 @dataclass
 class GeomModel(ABC):
@@ -148,6 +160,7 @@ class GeomModel(ABC):
         """
         pass
 
+
 @dataclass
 class Embryo:
     """
@@ -155,10 +168,11 @@ class Embryo:
 
     Attributes:
         model (GeomModel): The geometrical model governing the cells.
-        cells (List[Cell]): A list of cells in the embryo.
+        cells (list[Cell]): A list of cells in the embryo.
     """
+
     model: GeomModel
-    cells: List[Cell]
+    cells: list[Cell]
 
     def __repr__(self):
         """
@@ -169,22 +183,17 @@ class Embryo:
         """
         return f"Embryo(model={self.model.name}, #cells={len(self.cells)})"
 
+
 @dataclass
 class History:
     """
     Tracks the states of the embryo over time.
 
     Attributes:
-        snapshots (List[Embryo]): A list of snapshots representing the state of the embryo at different times.
+        snapshots (list[Embryo]): A list of snapshots representing the state of the embryo at different times.
     """
-    snapshots: List[Embryo] = None
 
-    def __post_init__(self):
-        """
-        Ensures snapshots are initialized as an empty list.
-        """
-        if self.snapshots is None:
-            self.snapshots = []
+    snapshots: list[Embryo] = field(default_factory=list)
 
     def add(self, embryo: Embryo) -> None:
         """

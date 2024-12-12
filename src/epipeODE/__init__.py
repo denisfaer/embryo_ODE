@@ -9,10 +9,12 @@ Modules:
     visualization: Provides tools for plotting landscapes, trajectories, and animations.
 """
 
-from .data_classes import Point, Fate, Cell, Embryo, History
-from .models import GeomModel, DualCusp, HeteroclinicFlip
-from .dynamics import update_state, generate_history, initialize_embryo
+from .data_classes import Cell, Embryo, Fate, History, Point
+from .dynamics import generate_history, initialize_embryo, update_state
+from .models import DualCusp, GeomModel, HeteroclinicFlip
 from .visualization import Visualizer
+
+__version__ = "1.0.0"
 
 __all__ = [
     "Point",
