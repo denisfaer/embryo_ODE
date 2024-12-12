@@ -7,10 +7,10 @@ name = "embryo_ODE"
 dynamic = ["version"]
 description = "Developing a data-driven dynamic model of cell fate choice in mammalian embryogenesis"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.11"
 dependencies = [
     "numpy",
-    # add other dependencies, like scipy, etc
+    "matplotlib",
 ]
 
 [project.urls]
@@ -23,7 +23,7 @@ path = "src/epipeODE/__init__.py"
 packages = ["src/epipeODE"]
 
 [project.optional-dependencies]
-test = ["pytest", "matplotlib"]
+test = ["pytest"]
 
 [tool.hatch.build.targets.sdist]
 include = [
