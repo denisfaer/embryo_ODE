@@ -1,10 +1,13 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.colors import LightSource
+import numpy as np
 from matplotlib import cm
 from matplotlib.animation import FuncAnimation
-from .data_classes import Embryo, History, Fate
+from matplotlib.collections import PathCollection
+from matplotlib.colors import LightSource
+
+from .data_classes import Embryo, Fate, History
 from .models import GeomModel
+
 
 class Visualizer:
     """
@@ -38,7 +41,9 @@ class Visualizer:
 
         return min_x, max_x, min_y, max_y
 
-    def _create_meshgrid(self, min_x: float, max_x: float, min_y: float, max_y: float) -> tuple[np.ndarray, np.ndarray]:
+    def _create_meshgrid(
+        self, min_x: float, max_x: float, min_y: float, max_y: float
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Creates a meshgrid for visualization.
 
@@ -55,7 +60,9 @@ class Visualizer:
         Y = np.linspace(min_y * self.SCALE, max_y * self.SCALE, self.GRANULARITY)
         return np.meshgrid(X, Y)
 
-    def _compute_streamlines(self, model: GeomModel, X: np.ndarray, Y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def _compute_streamlines(
+        self, model: GeomModel, X: np.ndarray, Y: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Computes normalized streamlines for the model's potential.
 
@@ -94,7 +101,9 @@ class Visualizer:
         rgb = ls.shade(Z, cmap=cm.viridis, vert_exag=0.1, blend_mode="soft")
 
         ax.plot_surface(
-            X, Y, Z,
+            X,
+            Y,
+            Z,
             cmap="viridis",
             facecolors=rgb,  # with our custom shading
             linewidth=0,
@@ -107,7 +116,9 @@ class Visualizer:
             # lw=0.01,
         )
         ax.contourf(
-            X, Y, Z,
+            X,
+            Y,
+            Z,
             zdir="z",
             offset=-max_z,
             cmap="RdYlBu_r",
@@ -153,7 +164,9 @@ class Visualizer:
         # Plot the trajectories
         fig, ax = plt.subplots(figsize=(8, 6))
         contour = ax.contourf(X, Y, Z, cmap="RdYlBu_r", alpha=0.8)
-        ax.streamplot(X, Y, dX, dY, color="grey", density=1, linewidth=0.5, arrowsize=1.5)
+        ax.streamplot(
+            X, Y, dX, dY, color="grey", density=1, linewidth=0.5, arrowsize=1.5
+        )
 
         # Plot all trajectories
         for embryo in history:
@@ -162,12 +175,7 @@ class Visualizer:
 
         # Highlight initial positions
         for cell in base_embryo.cells:
-            ax.scatter(
-                cell.loc.x,
-                cell.loc.y,
-                color="red",
-                s=25
-            )
+            ax.scatter(cell.loc.x, cell.loc.y, color="red", s=25)
 
         # Style the plot
         ax.set_xlabel("X")
@@ -178,7 +186,9 @@ class Visualizer:
         if show:
             plt.show()
 
-    def save_as_gif(self, history: History, gif_path: str = "output.gif", fps: int = 10) -> None:
+    def save_as_gif(
+        self, history: History, gif_path: str = "output.gif", fps: int = 10
+    ) -> None:
         """
         Saves the evolution of cell trajectories as a GIF.
 
@@ -201,12 +211,14 @@ class Visualizer:
 
         # Plot static elements outside the update function
         contour = ax.contourf(X, Y, Z, cmap="RdYlBu_r", alpha=0.8)
-        ax.streamplot(X, Y, dX, dY, color="grey", density=1, linewidth=0.5, arrowsize=1.5)
+        ax.streamplot(
+            X, Y, dX, dY, color="grey", density=1, linewidth=0.5, arrowsize=1.5
+        )
         cbar = plt.colorbar(contour, ax=ax)
         cbar.set_label(f"{base_embryo.model.name} Potential")
 
         # Store scatter artists for dynamic updates
-        scatters = []
+        scatters: list[PathCollection] = []
 
         def update(frame):
             # Remove previous scatter plots
@@ -218,7 +230,9 @@ class Visualizer:
             for past_frame in range(frame + 1):
                 embryo = history[past_frame]
                 for cell in embryo.cells:
-                    scatter = ax.scatter(cell.loc.x, cell.loc.y, color="blue", s=5, alpha=0.6)
+                    scatter = ax.scatter(
+                        cell.loc.x, cell.loc.y, color="blue", s=5, alpha=0.6
+                    )
                     scatters.append(scatter)
 
             # Highlight initial positions
