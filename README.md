@@ -9,13 +9,5 @@ models.py contains pre-implemented models from [1]
 dynamics.py contains simulation methods
 visualization.py contains the Visualizer class that has the plot_landscape and plot_trajectories methods
 
-## Project
-
-![Title](./info/title.png)
-
-## Model
-
-![Model](./info/model.png)
-
 ## References
 [1] Archishman Raju, Eric D. Siggia; A geometrical model of cell fate specification in the mouse blastocyst. Development 15 April 2024; 151 (8): dev202467. doi:
