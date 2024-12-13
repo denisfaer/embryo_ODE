@@ -9,7 +9,39 @@ This is a simplified package to make, simulate and visualize cell fate choices. 
 **dynamics.py** contains simulation methods <br/>
 **visualization.py** contains the Visualizer class that has the plot_landscape and plot_trajectories methods <br/>
 
-For more specific details on classes and functions see **epipeODE.pdf** in the *info* folder.
+For more specific details on classes and functions see [epipeODE.pdf](https://github.com/denisfaer/embryo_ODE/blob/main/info/epipeODE.pdf) in the *info* folder.
 
 ## References
 [1] Archishman Raju, Eric D. Siggia; A geometrical model of cell fate specification in the mouse blastocyst. *Development* 15 April 2024; 151 (8): dev202467.
+
+## Installation Instructions
+
+* Clone the repository
+  ```
+  git clone https://github.com/denisfaer/embryo_ODE.git
+  cd embryo_ODE
+  ```
+* Optional: set up a virtual environment
+  ```
+  python -m venv .venv
+  source .venv/bin/activate
+  ```
+  or any other way.
+* Install hatch
+  ```
+  pip install hatch
+  ```
+* Install the package
+
+  To install the package in editable mode (for development purposes):
+  ```
+  hatch develop
+  ```
+  To install it as a regular package:
+  ```
+  pip install .
+  ```
+* Optional: install test dependencies
+  ```
+  pip install .[test]
+  ```
