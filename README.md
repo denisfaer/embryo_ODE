@@ -9,7 +9,7 @@ This is a simplified package to make, simulate and visualize cell fate choices. 
 **dynamics.py** contains simulation methods <br/>
 **visualization.py** contains the Visualizer class that has the plot_landscape and plot_trajectories methods <br/>
 
-For more specific details on classes and functions see **info/epipeODE.pdf** in the *info* folder.
+For more specific details on classes and functions see **epipeODE.pdf** in the *info* folder.
 
 ## References
 [1] Archishman Raju, Eric D. Siggia; A geometrical model of cell fate specification in the mouse blastocyst. *Development* 15 April 2024; 151 (8): dev202467.
